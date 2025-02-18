@@ -412,13 +412,6 @@ print(sample_df['high_risk'].value_counts())  # Count High vs. Low Risk cases
 
 
 
-!pip install streamlit
-
-!pip install pyngrok
-
-!pip install --upgrade google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-
-
 
 # Commented out IPython magic to ensure Python compatibility.
 # %%writefile app.py
