@@ -416,236 +416,236 @@ print(sample_df['high_risk'].value_counts())  # Count High vs. Low Risk cases
 # Commented out IPython magic to ensure Python compatibility.
 # %%writefile app.py
 # # Paste the above Streamlit code here
-# import joblib
-# import streamlit as st
-# import plotly.express as px
-# import pandas as pd
-# import urllib.parse
-# import base64
-# from google.oauth2.credentials import Credentials
-# from googleapiclient.discovery import build
-# from email.mime.multipart import MIMEMultipart
-# from email.mime.text import MIMEText
-# 
-# # Load Models and Multi-Label Binarizer
-# rf_model = joblib.load("determine_high_risk.pkl")
-# mlb_symptoms = joblib.load("mlb_symptoms.pkl")
-# disease_model = joblib.load("predict_disease.pkl")
-# vectorizer = joblib.load("tfidf_vectorizer.pkl")
-# HOSPITAL_EMAIL = "chhaviel04@gmail.com"
-# 
-# CLIENT_ID = "************************************"
-# CLIENT_SECRET = "********************************"
-# REFRESH_TOKEN = "*****************************************"
-# YOUR_GMAIL = "chhavichadha07@gmail.com"
-# 
-# # ✅ Gmail API Authentication
-# def authenticate_gmail():
-#     creds = Credentials(
-#         None,
-#         refresh_token=REFRESH_TOKEN,
-#         token_uri="https://oauth2.googleapis.com/token",
-#         client_id=CLIENT_ID,
-#         client_secret=CLIENT_SECRET,
-#     )
-#     return build("gmail", "v1", credentials=creds)
-# 
-# # ✅ Function to Send High-Risk Alert Email
-# def send_high_risk_email(patient_id, name, number, age, gender, symptoms, risk_level):
-#     service = authenticate_gmail()
-# 
-#     subject = "🚨 Emergency Alert: High-Risk Patient"
-#     body = f"""
-#     ⚠️ High-Risk Patient Report ⚠️
-# 
-#     Patient ID: {patient_id}
-#     Name: {name}
-#     Mobile: {number}
-#     Age: {age}
-#     Gender: {gender}
-#     Symptoms: {', '.join(symptoms)}
-#     Risk Level: {risk_level}
-# 
-#     Please take necessary action.
-#     """
-# 
-#     msg = MIMEMultipart()
-#     msg["From"] = YOUR_GMAIL
-#     msg["To"] = YOUR_GMAIL  # Change if sending to a doctor/hospital email
-#     msg["Subject"] = subject
-#     msg.attach(MIMEText(body, "plain"))
-# 
-#     raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
-#     message = {"raw": raw_message}
-# 
-#     try:
-#         service.users().messages().send(userId="me", body=message).execute()
-#         print(f"✅ Email sent successfully to {YOUR_GMAIL}")
-#     except Exception as e:
-#         print(f"❌ Failed to send email: {e}")
-# 
-# 
-# # High-risk assessment function
-# import numpy as np
-# import pandas as pd
-# 
-# def determine_high_risk(symptoms, age):
-#     try:
-#         # Ensure symptoms are a list
-#         if not isinstance(symptoms, list):
-#             symptoms = [symptoms]
-# 
-#         # Convert symptoms into binary format using the trained mlb_symptoms
-#         symptoms_vectorized = mlb_symptoms.transform([symptoms])
-# 
-#         # Convert to dense array if necessary
-#         if hasattr(symptoms_vectorized, 'toarray'):
-#             symptoms_vectorized = symptoms_vectorized.toarray()
-# 
-#         # Make a prediction with the trained RandomForest model
-#         prediction = rf_model.predict(symptoms_vectorized)
-# 
-#         # Return high or low risk based on the model's prediction
-#         return "High Risk" if prediction[0] == 1 else "Low Risk"
-# 
-#     except Exception as e:
-#         print(f"Error in determine_high_risk: {e}")
-#         raise e
-# 
-# 
-# 
-# 
-# 
-# 
-# # Initialize Session State for Patient Reports
-# if 'patient_reports' not in st.session_state:
-#     st.session_state.patient_reports = []
-# 
-# # Set Background Image for Homepage
-# def set_bg_image():
-#     st.markdown(
-#         """
-#         <style>
-#         .stApp {
-#             background-image: url("/content/Untitled design (7).png");
-#             background-size: 200px;
-#         }
-#         </style>
-#         """,
-#         unsafe_allow_html=True
-#     )
-# 
-# 
-# 
-# def predict_disease(symptoms_string):
-#     try:
-#         # Ensure input is a clean, properly formatted string
-#         symptoms_list = [s.strip() for s in symptoms_string.split(',') if s.strip()]
-# 
-#         if not symptoms_list:
-#             return "Unknown Disease"  # Handle empty input safely
-# 
-#         # Convert symptoms into a single string (expected format for vectorizer)
-#         symptoms_transformed = vectorizer.transform([" ".join(symptoms_list)])
-# 
-#         # Convert sparse matrix to dense array if necessary
-#         if hasattr(symptoms_transformed, 'toarray'):
-#             symptoms_transformed = symptoms_transformed.toarray()
-# 
-#         # Make prediction using trained model
-#         prediction = model.predict(symptoms_transformed)
-# 
-#         # Ensure prediction is extracted properly
-#         if isinstance(prediction, (list, np.ndarray)):
-#             predicted_disease = prediction[0]  # Extract first element
-#         else:
-#             predicted_disease = prediction
-# 
-#         return predicted_disease
-# 
-#     except Exception as e:
-#         print(f"Error in predict_disease: {e}")  # Debugging error messages
-#         import traceback
-#         traceback.print_exc()
-#         return "Unknown Disease"
-# 
-# 
-# # Homepage
-# def homepage():
-#     set_bg_image()
-#     st.title("🏥 Welcome to Mediboard")
-#     st.write("This platform allows patients to securely submit their health details and symptoms for risk assessment by medical professionals.")
-# 
-# # Visualization Board
-# def visualization_board():
-#     st.title("📊 Health Analysis Dashboard")
-#     if len(st.session_state.patient_reports) == 0:
-#         st.warning("No patient data available for analysis.")
-#         return
-# 
-#     df = pd.DataFrame(st.session_state.patient_reports, columns=["Patient ID", "Name", "Mobile.no", "Age", "Gender", "Symptoms", "Risk Level"])
-# 
-#     symptom_counts = df["Symptoms"].explode().value_counts()
-#     fig1 = px.bar(symptom_counts, x=symptom_counts.index, y=symptom_counts.values, title="Most Common Symptoms")
-# 
-#     risk_counts = df["Risk Level"].value_counts()
-#     fig2 = px.pie(names=risk_counts.index, values=risk_counts.values, title="Risk Level Distribution")
-# 
-#     fig3 = px.box(df, x="Risk Level", y="Age", title="Age Distribution by Risk levels")
-# 
-# 
-# 
-#     st.plotly_chart(fig1)
-#     st.plotly_chart(fig2)
-#     st.plotly_chart(fig3)
-# 
-# 
-# # Patient Dashboard
-# def patient_dashboard():
-#     st.title("🩺 Patient Information")
-#     name = st.text_input("Enter Patient Name")
-#     number = st.text_input("Enter Mobile.no")
-#     age = st.number_input("Enter Age", min_value=0, max_value=120, step=1)
-#     gender = st.selectbox("Enter Gender", ["M", "F", "Other"])
-#     symptoms = st.text_area("Enter Symptoms (comma-separated)")
-# 
-#     if st.button("Submit"):
-#       if symptoms:
-#         symptoms_list = [s.strip() for s in symptoms.split(',')]
-# 
-#         # Use the trained model for risk assessment
-#         high_risk = determine_high_risk(symptoms_list, age)
-# 
-#         patient_id = len(st.session_state.patient_reports) + 1
-#         st.session_state.patient_reports.append([patient_id, name, number, age, gender, symptoms_list, high_risk])
-# 
-#         st.write("### Patient Summary")
-#         st.write(f"**Patient ID:** {patient_id}")
-#         st.write(f"**Name:** {name}")
-#         st.write(f"**Mobile.no:** {number}")
-#         st.write(f"**Age:** {age}")
-#         st.write(f"**Gender:** {gender}")
-#         st.write(f"**Symptoms:** {', '.join(symptoms_list)}")
-#         st.write(f"**Risk Level:** {high_risk}")
-# 
-#         if high_risk == "High Risk":
-#           email_subject = "!!Emergency Alert: High-Risk Patient"
-#           email_body = f"""
-#                 SEND YOUR REPORT TO MEDICARE.\n
-#                 FROM:{name}\n
-#                 Patient ID: {patient_id}\n
-#                 Name: {name}\n
-#                 Mobile.no: {number}\n
-#                 Age: {age}\n
-#                 Gender: {gender}\n
-#                 Symptoms: {', '.join(symptoms_list)}\n
-#                 Risk Level: {high_risk}\n
-#                 Please take
-#                 necessary action.
-#                 """
-#           st.error("!! We had sent your report to doctor for evaluation !!.")
-#           send_high_risk_email(patient_id, name, number, age, gender, symptoms_list, high_risk)
-#           st.success("🚨 Email sent to the hospital for review, We will get in touch with you soon! ")
+import joblib
+import streamlit as st
+import plotly.express as px
+import pandas as pd
+import urllib.parse
+import base64
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Load Models and Multi-Label Binarizer
+rf_model = joblib.load("determine_high_risk.pkl")
+mlb_symptoms = joblib.load("mlb_symptoms.pkl")
+disease_model = joblib.load("predict_disease.pkl")
+vectorizer = joblib.load("tfidf_vectorizer.pkl")
+HOSPITAL_EMAIL = "chhaviel04@gmail.com"
+
+CLIENT_ID = "************************************"
+CLIENT_SECRET = "********************************"
+REFRESH_TOKEN = "*****************************************"
+YOUR_GMAIL = "chhavichadha07@gmail.com"
+
+# ✅ Gmail API Authentication
+def authenticate_gmail():
+    creds = Credentials(
+        None,
+        refresh_token=REFRESH_TOKEN,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+    )
+    return build("gmail", "v1", credentials=creds)
+
+# ✅ Function to Send High-Risk Alert Email
+def send_high_risk_email(patient_id, name, number, age, gender, symptoms, risk_level):
+    service = authenticate_gmail()
+
+    subject = "🚨 Emergency Alert: High-Risk Patient"
+    body = f"""
+    ⚠️ High-Risk Patient Report ⚠️
+
+    Patient ID: {patient_id}
+    Name: {name}
+    Mobile: {number}
+    Age: {age}
+    Gender: {gender}
+    Symptoms: {', '.join(symptoms)}
+    Risk Level: {risk_level}
+
+    Please take necessary action.
+    """
+
+    msg = MIMEMultipart()
+    msg["From"] = YOUR_GMAIL
+    msg["To"] = YOUR_GMAIL  # Change if sending to a doctor/hospital email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+    message = {"raw": raw_message}
+
+    try:
+        service.users().messages().send(userId="me", body=message).execute()
+        print(f"✅ Email sent successfully to {YOUR_GMAIL}")
+    except Exception as e:
+        print(f"❌ Failed to send email: {e}")
+
+
+# High-risk assessment function
+import numpy as np
+import pandas as pd
+
+def determine_high_risk(symptoms, age):
+    try:
+        # Ensure symptoms are a list
+        if not isinstance(symptoms, list):
+            symptoms = [symptoms]
+
+        # Convert symptoms into binary format using the trained mlb_symptoms
+        symptoms_vectorized = mlb_symptoms.transform([symptoms])
+
+        # Convert to dense array if necessary
+        if hasattr(symptoms_vectorized, 'toarray'):
+            symptoms_vectorized = symptoms_vectorized.toarray()
+
+        # Make a prediction with the trained RandomForest model
+        prediction = rf_model.predict(symptoms_vectorized)
+
+        # Return high or low risk based on the model's prediction
+        return "High Risk" if prediction[0] == 1 else "Low Risk"
+
+    except Exception as e:
+        print(f"Error in determine_high_risk: {e}")
+        raise e
+
+
+
+
+
+
+# Initialize Session State for Patient Reports
+if 'patient_reports' not in st.session_state:
+    st.session_state.patient_reports = []
+
+# Set Background Image for Homepage
+def set_bg_image():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: url("/content/Untitled design (7).png");
+            background-size: 200px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+
+def predict_disease(symptoms_string):
+    try:
+        # Ensure input is a clean, properly formatted string
+        symptoms_list = [s.strip() for s in symptoms_string.split(',') if s.strip()]
+
+        if not symptoms_list:
+            return "Unknown Disease"  # Handle empty input safely
+
+        # Convert symptoms into a single string (expected format for vectorizer)
+        symptoms_transformed = vectorizer.transform([" ".join(symptoms_list)])
+
+        # Convert sparse matrix to dense array if necessary
+        if hasattr(symptoms_transformed, 'toarray'):
+            symptoms_transformed = symptoms_transformed.toarray()
+
+        # Make prediction using trained model
+        prediction = model.predict(symptoms_transformed)
+
+        # Ensure prediction is extracted properly
+        if isinstance(prediction, (list, np.ndarray)):
+            predicted_disease = prediction[0]  # Extract first element
+        else:
+            predicted_disease = prediction
+
+        return predicted_disease
+
+    except Exception as e:
+        print(f"Error in predict_disease: {e}")  # Debugging error messages
+        import traceback
+        traceback.print_exc()
+        return "Unknown Disease"
+
+
+# Homepage
+def homepage():
+    set_bg_image()
+    st.title("🏥 Welcome to Mediboard")
+    st.write("This platform allows patients to securely submit their health details and symptoms for risk assessment by medical professionals.")
+
+# Visualization Board
+def visualization_board():
+    st.title("📊 Health Analysis Dashboard")
+    if len(st.session_state.patient_reports) == 0:
+        st.warning("No patient data available for analysis.")
+        return
+
+    df = pd.DataFrame(st.session_state.patient_reports, columns=["Patient ID", "Name", "Mobile.no", "Age", "Gender", "Symptoms", "Risk Level"])
+
+    symptom_counts = df["Symptoms"].explode().value_counts()
+    fig1 = px.bar(symptom_counts, x=symptom_counts.index, y=symptom_counts.values, title="Most Common Symptoms")
+
+    risk_counts = df["Risk Level"].value_counts()
+    fig2 = px.pie(names=risk_counts.index, values=risk_counts.values, title="Risk Level Distribution")
+
+    fig3 = px.box(df, x="Risk Level", y="Age", title="Age Distribution by Risk levels")
+
+
+
+    st.plotly_chart(fig1)
+    st.plotly_chart(fig2)
+    st.plotly_chart(fig3)
+
+
+# Patient Dashboard
+def patient_dashboard():
+    st.title("🩺 Patient Information")
+    name = st.text_input("Enter Patient Name")
+    number = st.text_input("Enter Mobile.no")
+    age = st.number_input("Enter Age", min_value=0, max_value=120, step=1)
+    gender = st.selectbox("Enter Gender", ["M", "F", "Other"])
+    symptoms = st.text_area("Enter Symptoms (comma-separated)")
+
+    if st.button("Submit"):
+      if symptoms:
+        symptoms_list = [s.strip() for s in symptoms.split(',')]
+
+        # Use the trained model for risk assessment
+        high_risk = determine_high_risk(symptoms_list, age)
+
+        patient_id = len(st.session_state.patient_reports) + 1
+        st.session_state.patient_reports.append([patient_id, name, number, age, gender, symptoms_list, high_risk])
+
+        st.write("### Patient Summary")
+        st.write(f"**Patient ID:** {patient_id}")
+        st.write(f"**Name:** {name}")
+        st.write(f"**Mobile.no:** {number}")
+        st.write(f"**Age:** {age}")
+        st.write(f"**Gender:** {gender}")
+        st.write(f"**Symptoms:** {', '.join(symptoms_list)}")
+        st.write(f"**Risk Level:** {high_risk}")
+
+        if high_risk == "High Risk":
+          email_subject = "!!Emergency Alert: High-Risk Patient"
+          email_body = f"""
+                SEND YOUR REPORT TO MEDICARE.\n
+                FROM:{name}\n
+                Patient ID: {patient_id}\n
+                Name: {name}\n
+                Mobile.no: {number}\n
+                Age: {age}\n
+                Gender: {gender}\n
+                Symptoms: {', '.join(symptoms_list)}\n
+                Risk Level: {high_risk}\n
+                Please take
+                necessary action.
+                """
+          st.error("!! We had sent your report to doctor for evaluation !!.")
+          send_high_risk_email(patient_id, name, number, age, gender, symptoms_list, high_risk)
+          st.success("🚨 Email sent to the hospital for review, We will get in touch with you soon! ")
 # 
 # 
 # 
@@ -672,7 +672,7 @@ print(sample_df['high_risk'].value_counts())  # Count High vs. Low Risk cases
 # 
 #
 
-!streamlit run app.py & npx cloudflared tunnel --url http://localhost:8501
+streamlit run app.py & npx cloudflared tunnel --url http://localhost:8501
 
 
 
