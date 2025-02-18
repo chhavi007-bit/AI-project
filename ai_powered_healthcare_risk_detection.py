@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import io
 import seaborn as sns
-import gspread
+
 
 """Loading and Reading Data"""
 
