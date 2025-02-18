@@ -15,21 +15,13 @@ import gspread
 
 """Loading and Reading Data"""
 
-from google.colab import auth
-# Authenticate and authorize Google Sheets access
-auth.authenticate_user()
-from google.auth import default
-creds, _ = default()
 
+# Load the dataset
+df = pd.read_csv("gpt-4.csv")
 
-gc = gspread.authorize(creds)
+# Display dataset info (for debugging)
+print(df.head())
 
-# Replace 'Your spreadsheet name' with the actual name of your spreadsheet
-# Replace 'Sheet1' with the name of the sheet you want to access
-# Replace 'NewDataSet' with the correct name of your spreadsheet
-worksheet = gc.open('gpt-4').worksheet('gpt-4')
- # Load data into a pandas DataFrame
-data = worksheet.get_all_values()
 df = pd.DataFrame(data[1:], columns=data[0])
 df.shape
 
