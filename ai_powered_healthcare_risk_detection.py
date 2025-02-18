@@ -646,33 +646,33 @@ def patient_dashboard():
           st.error("!! We had sent your report to doctor for evaluation !!.")
           send_high_risk_email(patient_id, name, number, age, gender, symptoms_list, high_risk)
           st.success("🚨 Email sent to the hospital for review, We will get in touch with you soon! ")
-# 
-# 
-# 
-# # Doctor Dashboard
-# def doctor_dashboard():
-#     st.title("👨‍⚕️ Doctor Dashboard")
-#     if len(st.session_state.patient_reports) == 0:
-#         st.warning("No patient reports available.")
-#         return
-#     df = pd.DataFrame(st.session_state.patient_reports, columns=["Patient ID", "Name", "Mobile.no", "Age", "Gender", "Symptoms", "Risk Level"])
-#     st.dataframe(df)
-# 
-# # Sidebar Navigation
-# st.sidebar.title("Navigation")
-# page = st.sidebar.radio("Go to", ["Home", "Healthcare Analytics Panel", "Health Assessment Portal", "Clinical Insights Hub"])
-# if page == "Home":
-#     homepage()
-# elif page == "Healthcare Analytics Panel":
-#     visualization_board()
-# elif page == "Health Assessment Portal":
-#     patient_dashboard()
-# elif page == "Clinical Insights Hub":
-#     doctor_dashboard()
-# 
-#
 
-streamlit run app.py & npx cloudflared tunnel --url http://localhost:8501
+
+
+# Doctor Dashboard
+def doctor_dashboard():
+    st.title("👨‍⚕️ Doctor Dashboard")
+    if len(st.session_state.patient_reports) == 0:
+        st.warning("No patient reports available.")
+        return
+    df = pd.DataFrame(st.session_state.patient_reports, columns=["Patient ID", "Name", "Mobile.no", "Age", "Gender", "Symptoms", "Risk Level"])
+    st.dataframe(df)
+
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Healthcare Analytics Panel", "Health Assessment Portal", "Clinical Insights Hub"])
+if page == "Home":
+    homepage()
+elif page == "Healthcare Analytics Panel":
+    visualization_board()
+elif page == "Health Assessment Portal":
+    patient_dashboard()
+elif page == "Clinical Insights Hub":
+    doctor_dashboard()
+
+
+
+
 
 
 
